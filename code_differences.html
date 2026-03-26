@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Análisis de Diferencias – theme_somos | GrupoSomos EPM</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.waves.min.js"></script>
+  <style>
+    :root {
+      --azul: #4678c8c4;
+      --azul-oscuro: #2c4f8cc4;
+      --gris: #606060;
+      --fondo: #f5f7fb;
+      --blanco: #ffffff;
+      --verde: #27ae60;
+      --rojo: #e74c3c;
+      --naranja: #f39c12;
+      --morado: #8e44ad;
+      --cyan: #1abc9c;
+      --black: #000000bd;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: var(--fondo);
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* ─── VANTA BACKGROUND ──────────────────────────────── */
+    #vanta-bg {
+        position: fixed;   
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;       /* para que quede detrás de todo */
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    .doc-header {
+      background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%);
+      color: #fff;
+      padding: 40px 60px;
+      margin: 20px;
+      border-radius: 10px;
+    }
+    .doc-header h1 { font-size: 2rem; margin-bottom: 8px; }
+    .doc-header p  { opacity: .85; font-size: .95rem; }
+    .badge-row { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+    .badge {
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: .82rem;
+      font-weight: 600;
+    }
+
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .container { max-width: 1280px; margin: 0 auto; padding: 40px 30px; }
+
+    .section { margin-bottom: 50px; }
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--blanco);
+      border-left: 5px solid var(--blanco);
+      padding-left: 14px;
+      margin-bottom: 22px;
+    }
+
+    /* ── KPI CARDS ──────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 18px;
+      margin-bottom: 10px;
+    }
+    .kpi-card {
+      background: var(--blanco);
+      border-radius: 14px;
+      padding: 22px 20px;
+      box-shadow: 0 2px 12px rgba(70,120,200,.12);
+      border-top: 4px solid var(--azul-oscuro);
+      text-align: center;
+    }
+    .kpi-card.verde  { border-color: var(--verde); }
+    .kpi-card.rojo   { border-color: var(--rojo); }
+    .kpi-card.naranja{ border-color: var(--naranja); }
+    .kpi-card.morado { border-color: var(--morado); }
+    .kpi-card.cyan   { border-color: var(--cyan); }
+    .kpi-card.black   { border-color: var(--black); }
+    .kpi-card .num {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--azul-oscuro);
+      display: block;
+    }
+    .kpi-card.verde  .num { color: var(--verde); }
+    .kpi-card.rojo   .num { color: var(--rojo); }
+    .kpi-card.naranja .num{ color: var(--naranja); }
+    .kpi-card.morado .num { color: var(--morado); }
+    .kpi-card.cyan   .num { color: var(--cyan); }
+    .kpi-card.black   .num { color: var(--black); }
+    .kpi-card .label { font-size: .82rem; color: var(--gris); margin-top: 6px; font-weight: 600; }
+
+    /* ── CHARTS ─────────────────────────────────────────── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+    .chart-card {
+      background: var(--blanco);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(70,120,200,.1);
+    }
+    .chart-card h3 { font-size: 1rem; color: var(--azul-oscuro); margin-bottom: 16px; font-weight: 700; }
+    .chart-card canvas { max-height: 300px; }
+
+    /* ── TABLES ─────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--blanco);
+      font-size: .88rem;
+    }
+    thead tr { background: var(--azul); color: #fff; }
+    thead th { padding: 13px 14px; text-align: left; font-weight: 600; white-space: nowrap; }
+    tbody tr:nth-child(even) { background: #f0f5ff; }
+    tbody td { padding: 11px 14px; border-bottom: 1px solid #e3eaf5; }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: .75rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .tag-nuevo    { background: #d5f5e3; color: #1e8449; }
+    .tag-solo-bd  { background: #fdebd0; color: #935116; }
+    .tag-solo-cod { background: #d6eaf8; color: #1a5276; }
+    .tag-renomb   { background: #e8daef; color: #6c3483; }
+    .tag-igual    { background: #d5d8dc; color: #424949; }
+    .tag-mod      { background: #fef9e7; color: #7d6608; }
+
+    .change-up   { color: var(--verde);  font-weight: 700; }
+    .change-down { color: var(--rojo);   font-weight: 700; }
+    .change-same { color: var(--gris);   font-weight: 600; }
+
+    /* ── ALERT BOXES ────────────────────────────────────── */
+    .alert {
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 18px;
+      font-size: .9rem;
+      border-left: 5px solid;
+    }
+    .alert-info    { background: #eaf4fd; border-color: var(--azul);    color: #1a5276; }
+    .alert-warning { background: #fef9e7; border-color: var(--naranja); color: #7d6608; }
+    .alert-success { background: #d5f5e3; border-color: var(--verde);   color: #1e8449; }
+    .alert-danger  { background: #fdedec; border-color: var(--rojo);    color: #922b21; }
+    .alert strong  { display: block; margin-bottom: 4px; }
+
+    /* ── LEGEND ─────────────────────────────────────────── */
+    .legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--blanco); }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+    /* ── FOOTER ─────────────────────────────────────────── */
+    .doc-footer {
+      background: var(--azul-oscuro);
+      color: rgba(255,255,255,.7);
+      text-align: center;
+      padding: 24px;
+      font-size: .82rem;
+      margin: 20px;
+      border-radius: 10px;
+    }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    .mini-title { font-size: .82rem; font-weight: 700; color: var(--azul-oscuro); margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em; }
+    .list-plain { list-style: none; }
+    .list-plain li { padding: 4px 0; border-bottom: 1px dashed #dde; font-size: .85rem; }
+    .list-plain li:last-child { border-bottom: none; }
+    .list-plain li::before { content: "▸ "; color: var(--azul); font-size: .75rem; }
+
+    .highlight-box {
+      background: var(--blanco);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(70,120,200,.1);
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+    <div id="vanta-bg"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     ENCABEZADO
+══════════════════════════════════════════════════════ -->
+<div class="doc-header">
+  <h1><i class="fas fa-chart-line" style="margin-right:10px;"></i> Análisis de Diferencias: Código vs Base de Datos de Producción</h1>
+  <p>Proyecto: <strong>GrupoSomos EPM</strong></p>
+  <p>Comparación entre el módulo de código fuente (<code>custom/theme_somos</code>) y el export de la base de datos de producción (<code>export_views/theme_somos</code>)</p>
+  <div class="badge-row">
+    <span class="badge">Odoo 16</span>
+    <span class="badge">Fecha análisis: Marzo 2026</span>
+    <span class="badge">Análisis Realizado Por: Jeferson Hernandez</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ══ CONTEXTO ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">1. Contexto del Análisis</div>
+    <div class="alert alert-warning">
+      <strong>⚠️ Situación actual identificada</strong>
+      El proyecto <code>theme_somos</code> inició con desarrollo desde código fuente (este repositorio), pero a mitad del proyecto la continuación se realizó <strong>directamente desde la plataforma Odoo</strong> (edición en base de datos de producción). Esto generó una brecha importante entre el código fuente y el estado real del frontend y backend en producción.
+    </div>
+    <div class="alert alert-info">
+      <strong>ℹ️ Objetivo de este documento</strong>
+      Documentar de forma exhaustiva todas las diferencias entre los archivos XML del módulo <code>theme_somos</code> en código fuente vs. los exportados de la base de datos de producción, para apoyar la toma de decisiones técnicas del equipo GrupoSomos EPM.
+    </div>
+    <div class="two-col">
+      <div class="highlight-box">
+        <div class="mini-title">📁 Fuente A — Código Fuente</div>
+        <p><code>custom/theme_somos/</code></p>
+        <p style="margin-top:8px;font-size:.85rem;color:var(--gris)">Módulo Odoo desarrollado desde código. Contiene vistas, datos, seguridad, controladores y assets. <strong>Punto de partida del proyecto.</strong></p>
+      </div>
+      <div class="highlight-box">
+        <div class="mini-title">🗄️ Fuente B — Base de Datos de Producción</div>
+        <p><code>export_views/theme_somos/</code></p>
+        <p style="margin-top:8px;font-size:.85rem;color:var(--gris)">Export de las vistas XML almacenadas en la BD de producción. Refleja el <strong>estado actual real del sistema</strong> tal como fue modificado desde la plataforma Odoo.</p>
+      </div>
+    </div>
+  </div>
+
+    <!-- ══ KPI RESUMEN ═══════════════════════════════════════ -->
+    <div class="section">
+        <div class="section-title">2. Resumen Ejecutivo — Indicadores Clave</div>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <span class="num">64</span>
+                <div class="label">Archivos XML en Código Fuente (portal_somos_theme_somos)</div>
+            </div>
+            <div class="kpi-card cyan">
+                <span class="num">787</span>
+                <div class="label">Total módulos en base de datos (todos los módulos)</div>
+            </div>
+            <div class="kpi-card black">
+                <span class="num">20</span>
+                <div class="label">Total archivos en export_views (export_views/)</div>
+            </div>
+            <div class="kpi-card naranja">
+                <span class="num">40</span>
+                <div class="label">Archivos XML en Base de Datos (export_views/theme_somos)</div>
+            </div>
+            <div class="kpi-card verde">
+                <span class="num">23</span>
+                <div class="label">Páginas con equivalente en ambos lados</div>
+            </div>
+            <div class="kpi-card rojo">
+                <span class="num">14</span>
+                <div class="label">Páginas NUEVAS solo en BD (no en código)</div>
+            </div>
+            <div class="kpi-card morado">
+                <span class="num">30</span>
+                <div class="label">Archivos solo en Código (sin equivalente en BD)</div>
+            </div>
+        </div>
+    </div>
+
+  <!-- ══ GRÁFICOS ══════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">3. Visualización Comparativa</div>
+    <div class="charts-row">
+
+      <!-- Gráfico 1: Comparación archivos -->
+      <div class="chart-card">
+        <h3>📂 Archivos XML — Código vs Base de Datos (theme_somos)</h3>
+        <canvas id="chartComparacion"></canvas>
+      </div>
+
+      <!-- Gráfico 2: Distribución de diferencias -->
+      <div class="chart-card">
+        <h3>🔍 Distribución de Diferencias (Páginas/Views)</h3>
+        <canvas id="chartDistribucion"></canvas>
+      </div>
+
+      <!-- Gráfico 3: Líneas de código comparadas -->
+      <div class="chart-card">
+        <h3>📏 Comparación de Líneas — Páginas con Equivalente en Ambos Lados</h3>
+        <canvas id="chartLineas"></canvas>
+      </div>
+
+      <!-- Gráfico 4: Módulos en export_views -->
+      <div class="chart-card">
+        <h3>🗂️ Módulos en export_views — Archivos XML por módulo</h3>
+        <canvas id="chartModulos"></canvas>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ TABLA: PÁGINAS CON EQUIVALENTE ════════════════════ -->
+  <div class="section">
+    <div class="section-title">4. Páginas con Equivalente en Ambos Lados (Renombradas y/o Modificadas)</div>
+    <div class="alert alert-info">
+      <strong>ℹ️ Convención de nombres</strong>
+      Al pasar el desarrollo a la plataforma Odoo, las páginas fueron renombradas añadiendo el prefijo <code>page_</code> o el prefijo <code>somos_</code>. El contenido fue editado directamente desde el editor visual de Odoo.
+    </div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--verde)"></div> Código tiene más líneas (código más completo)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--rojo)"></div> BD tiene más líneas (BD más avanzada)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gris)"></div> Sin diferencia significativa</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Archivo en Código Fuente</th>
+            <th>Equivalente en Base de Datos</th>
+            <th>Líneas Código</th>
+            <th>Líneas BD</th>
+            <th>Diferencia</th>
+            <th>Estado</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>home_somos.xml</code></td><td><code>page_home.xml</code></td><td>1084</td><td>983</td><td class="change-up">+101 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Página de inicio. Código tiene más estructura. BD tiene más contenido dinámico (banners con t-foreach). Código agrega sidebar flotante PQR´s.</td></tr>
+          <tr><td>2</td><td><code>transacciones.xml</code></td><td><code>page_transacciones.xml</code></td><td>1963</td><td>1661</td><td class="change-up">+302 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Módulo de transacciones. Mayor desarrollo en código fuente.</td></tr>
+          <tr><td>3</td><td><code>update_user.xml</code></td><td><code>page_update_user.xml</code></td><td>1238</td><td>980</td><td class="change-up">+258 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Actualización de datos de usuario. Código más completo.</td></tr>
+          <tr><td>4</td><td><code>signup.xml</code></td><td><code>somos_signup.xml</code></td><td>1124</td><td>911</td><td class="change-up">+213 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Formulario de registro. Código más extenso.</td></tr>
+          <tr><td>5</td><td><code>credi_somos.xml</code></td><td><code>page_credi_somos.xml</code></td><td>942</td><td>893</td><td class="change-up">+49 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Sección Credi Somos. Diferencia menor.</td></tr>
+          <tr><td>6</td><td><code>remember_password.xml</code></td><td><code>page_remember_password.xml</code></td><td>430</td><td>332</td><td class="change-up">+98 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Recuperación de contraseña. Código más completo.</td></tr>
+          <tr><td>7</td><td><code>vive_somos.xml</code></td><td><code>page_vive_somos.xml</code></td><td>401</td><td>329</td><td class="change-up">+72 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Sección Vive Somos.</td></tr>
+          <tr><td>8</td><td><code>register_final.xml</code></td><td><code>page_register_final.xml</code></td><td>232</td><td>194</td><td class="change-up">+38 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Página final de registro.</td></tr>
+          <tr><td>9</td><td><code>ofertas_credi_somos.xml</code></td><td><code>page_ofertas_credi_somos.xml</code></td><td>225</td><td>194</td><td class="change-up">+31 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Ofertas Credi Somos.</td></tr>
+          <tr><td>10</td><td><code>ofertas_vive_somos.xml</code></td><td><code>page_ofertas_vive_somos.xml</code></td><td>223</td><td>190</td><td class="change-up">+33 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Ofertas Vive Somos.</td></tr>
+          <tr><td>11</td><td><code>home-transacciones.xml</code></td><td><code>page_home_transacciones.xml</code></td><td>212</td><td>188</td><td class="change-up">+24 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Home transacciones.</td></tr>
+          <tr><td>12</td><td><code>aliados.xml</code></td><td><code>page_aliados.xml</code></td><td>166</td><td>130</td><td class="change-up">+36 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Página Aliados.</td></tr>
+          <tr><td>13</td><td><code>mis_datos.xml</code></td><td><code>page_mis_datos.xml</code></td><td>160</td><td>144</td><td class="change-up">+16 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Mis datos del usuario.</td></tr>
+          <tr><td>14</td><td><code>aliados_agil.xml</code></td><td><code>page_aliados_agil.xml</code></td><td>159</td><td>124</td><td class="change-up">+35 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Aliados Ágil.</td></tr>
+          <tr><td>15</td><td><code>aliados_eco.xml</code></td><td><code>page_aliados_eco.xml</code></td><td>159</td><td>124</td><td class="change-up">+35 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Aliados Eco.</td></tr>
+          <tr><td>16</td><td><code>signin.xml</code></td><td><code>somos_signin.xml</code></td><td>151</td><td>123</td><td class="change-up">+28 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Login / Sign In.</td></tr>
+          <tr><td>17</td><td><code>eventos_vive_somos.xml</code></td><td><code>page_eventos_vive_somos.xml</code></td><td>131</td><td>102</td><td class="change-up">+29 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Eventos Vive Somos.</td></tr>
+          <tr><td>18</td><td><code>preguntas_frecuentes.xml</code></td><td><code>page_preguntas_frecuentes.xml</code></td><td>103</td><td>79</td><td class="change-up">+24 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>FAQ / Preguntas frecuentes.</td></tr>
+          <tr><td>19</td><td><code>puntos_de_atencion.xml</code></td><td><code>page_puntos_atencion.xml</code></td><td>92</td><td>81</td><td class="change-up">+11 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Puntos de atención al usuario.</td></tr>
+          <tr><td>20</td><td><code>serie_somos.xml</code></td><td><code>page_serie_somos.xml</code></td><td>90</td><td>68</td><td class="change-up">+22 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Serie Somos.</td></tr>
+          <tr><td>21</td><td><code>terminos_y_condiciones.xml</code></td><td><code>page_terminos_y_condiciones.xml</code></td><td>69</td><td>52</td><td class="change-up">+17 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Términos y condiciones.</td></tr>
+          <tr><td>22</td><td><code>requerimiento-pqrs.xml</code></td><td><code>page_requerimiento-pqrs.xml</code></td><td>35</td><td>30</td><td class="change-up">+5 cód</td><td><span class="tag tag-renomb">Renombrado + Mod.</span></td><td>Formulario PQRS.</td></tr>
+          <tr><td>23</td><td><code>proximamente.xml</code></td><td><code>page_proximamente.xml</code></td><td>55</td><td>55</td><td class="change-same">≈ Igual</td><td><span class="tag tag-igual">Sin cambios signif.</span></td><td>Página "Próximamente".</td></tr>
+          <tr><td>24</td><td><code>404.xml</code></td><td><code>404.xml</code></td><td>9</td><td>19</td><td class="change-down">+10 BD</td><td><span class="tag tag-renomb">Mod. en BD</span></td><td>Página de error 404. BD tiene más contenido.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ TABLA: SOLO EN BD ══════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">5. Páginas / Componentes NUEVOS — Solo en Base de Datos de Producción</div>
+    <div class="alert alert-danger">
+      <strong>🚨 Nuevas funcionalidades desarrolladas exclusivamente desde la plataforma Odoo</strong>
+      Estos archivos NO existen en el código fuente. Representan funcionalidades que se implementaron directamente desde el editor de Odoo y <strong>no tienen respaldo en código</strong>. Para sincronizar el repositorio, estos archivos deben ser incorporados al módulo <code>theme_somos</code>.
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Archivo (BD)</th>
+            <th>Nombre / Descripción</th>
+            <th>Líneas BD</th>
+            <th>Tipo</th>
+            <th>Funcionalidad</th>
+            <th>Prioridad para Sincronizar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>header.xml</code></td><td>Somos Header</td><td>247</td><td><span class="tag tag-nuevo">Componente Global</span></td><td>Navbar / menú de navegación completo con accesibilidad, spinner y diseño refactorizado. Usa XPath sobre <code>website.layout</code>.</td><td>🔴 Alta</td></tr>
+          <tr><td>2</td><td><code>footer.xml</code></td><td>Somos Footer</td><td>133</td><td><span class="tag tag-nuevo">Componente Global</span></td><td>Pie de página con líneas de atención, logo e información de contacto. Reemplaza footer por defecto de Odoo.</td><td>🔴 Alta</td></tr>
+          <tr><td>3</td><td><code>page_canal_transparencia.xml</code></td><td>Canal de Transparencia</td><td>407</td><td><span class="tag tag-nuevo">Página Nueva</span></td><td>Nueva sección de canal de transparencia y denuncias. No existía en el código.</td><td>🔴 Alta</td></tr>
+          <tr><td>4</td><td><code>page_gestion_cobranza.xml</code></td><td>Gestión y Cobranza</td><td>305</td><td><span class="tag tag-nuevo">Página Nueva</span></td><td>Sección de gestión de cobranza. Funcionalidad nueva sin respaldo en código.</td><td>🔴 Alta</td></tr>
+          <tr><td>5</td><td><code>page_campain_update_user.xml</code></td><td>Campaña - Actualizar Datos</td><td>360</td><td><span class="tag tag-nuevo">Página Nueva</span></td><td>Página de campaña para actualización de datos de usuario, sin header ni footer (standalone). Nueva funcionalidad.</td><td>🔴 Alta</td></tr>
+          <tr><td>6</td><td><code>page_vacancies.xml</code></td><td>Vacantes / Trabaja con Nosotros</td><td>71</td><td><span class="tag tag-nuevo">Página Nueva</span></td><td>Página "Trabaja con nosotros" / vacantes disponibles. Nueva sección.</td><td>🟡 Media</td></tr>
+          <tr><td>7</td><td><code>page_data_processing_policy.xml</code></td><td>Política de Tratamiento de Datos</td><td>50</td><td><span class="tag tag-nuevo">Página Nueva</span></td><td>Página legal de política de tratamiento de datos personales.</td><td>🟡 Media</td></tr>
+          <tr><td>8</td><td><code>page_requirement-pqrs_wolkvox.xml</code></td><td>PQRS con Integración Wolkvox</td><td>240</td><td><span class="tag tag-nuevo">Página Nueva</span></td><td>Versión extendida del formulario PQRS con integración a la plataforma Wolkvox. Totalmente nueva.</td><td>🔴 Alta</td></tr>
+          <tr><td>9</td><td><code>wolkvox_script_addition.xml</code></td><td>Chat Widget Wolkvox</td><td>17</td><td><span class="tag tag-nuevo">Integración</span></td><td>Añade el widget de chat Wolkvox globalmente en el <code>&lt;head&gt;</code> del sitio via herencia de <code>website.layout</code>. Integración de chat en tiempo real.</td><td>🔴 Alta</td></tr>
+          <tr><td>10</td><td><code>somos_rightBar.xml</code></td><td>Barra Lateral Flotante</td><td>33</td><td><span class="tag tag-nuevo">Componente UI</span></td><td>Sidebar flotante lateral (botones de acceso rápido). Componente de UX nuevo.</td><td>🟡 Media</td></tr>
+          <tr><td>11</td><td><code>btn_signup.xml</code></td><td>Botón de Registro</td><td>16</td><td><span class="tag tag-nuevo">Componente UI</span></td><td>Botón de registro personalizado. Componente reutilizable.</td><td>🟢 Baja</td></tr>
+          <tr><td>12</td><td><code>login_successful_2.xml</code></td><td>Login Exitoso v2</td><td>24</td><td><span class="tag tag-nuevo">Flujo Auth</span></td><td>Vista de login exitoso (versión 2). Nuevo estado en el flujo de autenticación.</td><td>🟡 Media</td></tr>
+          <tr><td>13</td><td><code>modify_login_clear_session.xml</code></td><td>Modificar Login / Limpiar Sesión</td><td>17</td><td><span class="tag tag-nuevo">Flujo Auth</span></td><td>Template para cierre de sesión y limpieza. Nuevo componente de seguridad.</td><td>🟡 Media</td></tr>
+          <tr><td>14</td><td><code>template_header_opt.xml</code></td><td>Opciones de Header</td><td>17</td><td><span class="tag tag-nuevo">Componente UI</span></td><td>Opciones adicionales del header/navbar.</td><td>🟢 Baja</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ TABLA: SOLO EN CÓDIGO ══════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">6. Archivos Solo en Código Fuente — Sin Equivalente en Base de Datos</div>
+    <div class="alert alert-warning">
+      <strong>⚠️ Funcionalidades en código que NO llegaron a producción o fueron reemplazadas</strong>
+      Estos archivos existen en el módulo <code>theme_somos</code> del código fuente pero <strong>no tienen equivalente directo en la base de datos de producción</strong>. Pueden representar funcionalidades incompletas, reemplazadas, o pendientes de despliegue.
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Archivo (Código)</th>
+            <th>Líneas</th>
+            <th>Categoría</th>
+            <th>Descripción / Análisis</th>
+            <th>Estado Probable</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- FUNCIONALIDADES ADMIN/BACKEND -->
+          <tr><td>1</td><td><code>collection_management.xml</code></td><td>278</td><td><span class="tag tag-solo-cod">Gestión</span></td><td>Gestión de cobranza / colección. Podría estar relacionada con <code>page_gestion_cobranza.xml</code> en BD.</td><td>⚠️ Revisión recomendada</td></tr>
+          <tr><td>2</td><td><code>complaints_channel.xml</code></td><td>425</td><td><span class="tag tag-solo-cod">Gestión</span></td><td>Canal de quejas/denuncias. Relacionado con <code>page_canal_transparencia.xml</code> en BD. Código más antiguo.</td><td>⚠️ Reemplazado en BD</td></tr>
+          <tr><td>3</td><td><code>res_partner.xml</code></td><td>155</td><td><span class="tag tag-solo-cod">Backend</span></td><td>Vista de configuración del modelo <code>res.partner</code> en backend de Odoo.</td><td>🔵 Solo backend</td></tr>
+          <tr><td>4</td><td><code>log_sms.xml</code></td><td>81</td><td><span class="tag tag-solo-cod">Logs</span></td><td>Registro/log de SMS enviados. Funcionalidad de auditoría.</td><td>🔵 Solo backend</td></tr>
+          <tr><td>5</td><td><code>consolidated_log.xml</code></td><td>73</td><td><span class="tag tag-solo-cod">Logs</span></td><td>Log consolidado de actividades/eventos del sistema.</td><td>🔵 Solo backend</td></tr>
+          <tr><td>6</td><td><code>consolidated_users.xml</code></td><td>69</td><td><span class="tag tag-solo-cod">Logs</span></td><td>Vista consolidada de usuarios activos/registrados.</td><td>🔵 Solo backend</td></tr>
+          <tr><td>7</td><td><code>log_messages.xml</code></td><td>66</td><td><span class="tag tag-solo-cod">Logs</span></td><td>Registro de mensajes del sistema.</td><td>🔵 Solo backend</td></tr>
+          <tr><td>8</td><td><code>allies.xml</code></td><td>72</td><td><span class="tag tag-solo-cod">Página</span></td><td>Página de Aliados en inglés (<em>allies</em>). Probable versión previa renombrada a <code>aliados</code>.</td><td>🔴 Obsoleto</td></tr>
+          <tr><td>9</td><td><code>offer_christmas.xml</code></td><td>231</td><td><span class="tag tag-solo-cod">Campaña</span></td><td>Página de ofertas navideñas. Campaña estacional.</td><td>🟡 Temporal / estacional</td></tr>
+          <tr><td>10</td><td><code>christmas.xml</code></td><td>53</td><td><span class="tag tag-solo-cod">Campaña</span></td><td>Componente de Navidad / campaña estacional.</td><td>🟡 Temporal / estacional</td></tr>
+          <tr><td>11</td><td><code>otp_register.xml</code></td><td>54</td><td><span class="tag tag-solo-cod">Auth</span></td><td>Registro con OTP (One Time Password). Funcionalidad de seguridad en el flujo de registro.</td><td>⚠️ Verificar si está activa</td></tr>
+          <tr><td>12</td><td><code>bitrix.xml</code></td><td>49</td><td><span class="tag tag-solo-cod">Integración</span></td><td>Integración con Bitrix CRM. Vistas de logs de errores de Bitrix.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>13</td><td><code>bitrix_user_error.xml</code></td><td>47</td><td><span class="tag tag-solo-cod">Integración</span></td><td>Vista de errores de sincronización con Bitrix.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>14</td><td><code>offer.xml</code></td><td>71</td><td><span class="tag tag-solo-cod">Catálogo</span></td><td>Vista de ofertas genéricas. Probablemente reemplazada por versiones específicas (credi/vive).</td><td>⚠️ Revisión recomendada</td></tr>
+          <tr><td>15</td><td><code>category.xml</code></td><td>46</td><td><span class="tag tag-solo-cod">Catálogo</span></td><td>Vista de categorías de ofertas/servicios.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>16</td><td><code>category_service_allie.xml</code></td><td>47</td><td><span class="tag tag-solo-cod">Catálogo</span></td><td>Categorías de servicios de aliados.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>17</td><td><code>banners.xml</code></td><td>62</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista de administración de banners del sitio.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>18</td><td><code>points.xml</code></td><td>49</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista de puntos de atención (backend admin).</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>19</td><td><code>questions.xml</code></td><td>47</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista de preguntas frecuentes (backend admin).</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>20</td><td><code>files.xml</code></td><td>47</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Gestión de archivos desde backend.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>21</td><td><code>series_somos.xml</code></td><td>49</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista admin de series/episodios Somos. Relacionado con <code>serie_somos.xml</code> en BD.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>22</td><td><code>eventos_somos.xml</code></td><td>47</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista admin de eventos generales Somos.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>23</td><td><code>discounts_benefits.xml</code></td><td>45</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista de descuentos y beneficios (backend).</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>24</td><td><code>themes_interest.xml</code></td><td>46</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista de temáticas de interés (backend).</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>25</td><td><code>partner_discounts_benefits.xml</code></td><td>44</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista de descuentos/beneficios por partner (backend).</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>26</td><td><code>partner_themes_interest.xml</code></td><td>44</td><td><span class="tag tag-solo-cod">CMS</span></td><td>Vista de temáticas de interés por partner (backend).</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>27</td><td><code>res_user.xml</code></td><td>57</td><td><span class="tag tag-solo-cod">Backend</span></td><td>Vista del modelo <code>res.users</code> con campos personalizados.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>28</td><td><code>presets.xml</code></td><td>17</td><td><span class="tag tag-solo-cod">Config</span></td><td>Presets de configuración del tema visual.</td><td>🟡 Pendiente integración</td></tr>
+          <tr><td>29</td><td><code>base_config_view.xml</code></td><td>28</td><td><span class="tag tag-solo-cod">Config</span></td><td>Vista base de configuración del módulo.</td><td>🔵 Backend/Admin</td></tr>
+          <tr><td>30</td><td><code>ayuda.xml</code></td><td>5</td><td><span class="tag tag-solo-cod">Página</span></td><td>Placeholder vacío de página de ayuda. No implementado.</td><td>🔴 Pendiente o descartado</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ ESTRUCTURA MÓDULOS BD ══════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">7. Módulos Adicionales en Base de Datos de Producción</div>
+    <div class="alert alert-info">
+      <strong>ℹ️ El export de la BD cubre mucho más que solo theme_somos</strong>
+      La exportación de producción incluye vistas de <strong>20 módulos distintos</strong>, incluyendo módulos nativos de Odoo y configuraciones del sistema. El código fuente (<code>custom/</code>) solo cubre 2 módulos personalizados.
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Módulo en export_views</th>
+            <th>Archivos XML</th>
+            <th>Tipo</th>
+            <th>¿En código fuente?</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>theme_somos</code></td><td>40</td><td><span class="tag tag-renomb">Personalizado</span></td><td>✅ Parcialmente (64 en código)</td><td>Módulo principal del frontend GrupoSomos. <strong>Objeto de este análisis.</strong></td></tr>
+          <tr><td><code>sin_modulo</code></td><td>440</td><td><span class="tag tag-solo-bd">Sistema Odoo</span></td><td>❌ No</td><td>Vistas del backend/admin de Odoo (modelos base, res.partner, res.users, ir.*, mail.*, etc.). Son vistas del sistema generadas automáticamente por Odoo, incluyendo vistas admin de theme_somos.</td></tr>
+          <tr><td><code>website</code></td><td>188</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Módulo website de Odoo: vistas de páginas, menús, configuración, visitantes, etc.</td></tr>
+          <tr><td><code>web</code></td><td>33</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Módulo web core de Odoo.</td></tr>
+          <tr><td><code>portal</code></td><td>26</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>⚠️ Parcialmente (portal_somos_theme_addons)</td><td>Portal de clientes Odoo.</td></tr>
+          <tr><td><code>mail</code></td><td>13</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Módulo de correo y mensajería.</td></tr>
+          <tr><td><code>web_editor</code></td><td>10</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Editor visual de Odoo Website.</td></tr>
+          <tr><td><code>auth_signup</code></td><td>5</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Módulo de registro de usuarios.</td></tr>
+          <tr><td><code>digest</code></td><td>5</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Resúmenes/reportes periódicos por email.</td></tr>
+          <tr><td><code>restrict_logins</code></td><td>1</td><td><span class="tag tag-renomb">Personalizado</span></td><td>✅ Sí (en portal_somos_theme_addons)</td><td>Módulo de restricción de logins. También en código fuente.</td></tr>
+          <tr><td><code>website_google_tag</code></td><td>1</td><td><span class="tag tag-renomb">Personalizado</span></td><td>✅ Sí (en portal_somos_theme_addons)</td><td>Google Tag Manager para website.</td></tr>
+          <tr><td><code>auth_totp</code></td><td>1</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Autenticación de dos factores (TOTP).</td></tr>
+          <tr><td><code>auth_totp_portal</code></td><td>1</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>TOTP para portal de clientes.</td></tr>
+          <tr><td><code>base</code></td><td>7</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Módulo base de Odoo.</td></tr>
+          <tr><td><code>snailmail</code></td><td>2</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Correo físico (snailmail).</td></tr>
+          <tr><td><code>iap_mail</code></td><td>1</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>IAP Mail (servicios en la nube Odoo).</td></tr>
+          <tr><td><code>website_mail</code></td><td>1</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Integración mail + website.</td></tr>
+          <tr><td><code>http_routing</code></td><td>7</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Enrutamiento HTTP.</td></tr>
+          <tr><td><code>base_install_request</code></td><td>1</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Solicitudes de instalación de módulos.</td></tr>
+          <tr><td><code>gen_key</code></td><td>1</td><td><span class="tag tag-solo-bd">Nativo Odoo</span></td><td>❌ No</td><td>Generación de claves API.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ DIFERENCIAS ESTRUCTURALES ══════════════════════════ -->
+  <div class="section">
+    <div class="section-title">8. Diferencias Estructurales entre Código y Base de Datos</div>
+    <div class="two-col">
+      <div class="highlight-box">
+        <div class="mini-title">📁 Estructura del Código Fuente (custom/theme_somos)</div>
+        <ul class="list-plain" style="margin-top:10px">
+          <li><code>__manifest__.py</code> — Declaración del módulo</li>
+          <li><code>__init__.py</code> + <code>exceptions.py</code> — Python</li>
+          <li><code>controllers/</code> — Controladores HTTP</li>
+          <li><code>models/</code> — Modelos de datos Odoo ORM</li>
+          <li><code>views/</code> — Vistas XML (template QWeb)</li>
+          <li><code>views/pages/</code> — 55 páginas del sitio</li>
+          <li><code>data/</code> — Datos iniciales XML</li>
+          <li><code>security/</code> — Reglas de acceso</li>
+          <li><code>static/</code> — Assets (CSS, JS, imágenes, fuentes, videos)</li>
+        </ul>
+        <p style="margin-top:12px;font-size:.83rem;color:var(--gris)">✅ Estructura completa de módulo Odoo con separación de responsabilidades. Incluye <strong>modelos Python</strong>, controladores, y datos semilla.</p>
+      </div>
+      <div class="highlight-box">
+        <div class="mini-title">🗄️ Estructura del Export de BD (export_views/theme_somos)</div>
+        <ul class="list-plain" style="margin-top:10px">
+          <li>40 archivos <code>.xml</code> planos (sin subcarpetas)</li>
+          <li>Solo contiene registros <code>ir.ui.view</code></li>
+          <li>Sin controladores, modelos, ni assets</li>
+          <li>Sin archivos de seguridad o datos iniciales</li>
+          <li>Representan el estado actual de las vistas en BD</li>
+          <li>Estructura <code>&lt;record model="ir.ui.view"&gt;</code></li>
+          <li>Nombrados con prefijo <code>page_</code> o <code>somos_</code></li>
+        </ul>
+        <p style="margin-top:12px;font-size:.83rem;color:var(--gris)">⚠️ Export parcial: solo vistas XML. <strong>No incluye modelos Python</strong>, controladores ni assets estáticos. Es solo la capa de presentación.</p>
+        <p style="margin-top:12px;font-size:.83rem;color:var(--gris)">⚠️ Export de módulos: En la exportación de la base de datos backup producción <strong>contiene 20 módulos</strong> incluyento theme_somos.</p>
+    </div>
+    </div>
+
+    <div class="highlight-box" style="margin-top:0">
+      <div class="mini-title">🔄 Diferencias Técnicas Clave entre Archivos Equivalentes</div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table>
+          <thead>
+            <tr><th>Aspecto</th><th>Código Fuente</th><th>Base de Datos de Producción</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Modelo de record</strong></td><td><code>model="website.page"</code> (página web)</td><td><code>model="ir.ui.view"</code> (vista interna)</td></tr>
+            <tr><td><strong>Registro de página</strong></td><td>Incluye <code>url</code>, <code>is_published</code>, <code>key</code></td><td>Solo el <code>arch</code> del view (sin metadatos de página)</td></tr>
+            <tr><td><strong>Indentación / Formato</strong></td><td>Indentación limpia, 4 espacios, legible</td><td>Formato comprimido, mezclado, exportado por Odoo</td></tr>
+            <tr><td><strong>Declaración XML</strong></td><td>Sin <code>&lt;?xml ...?&gt;</code> en algunos archivos</td><td>Con <code>&lt;?xml version="1.0" encoding="utf-8"?&gt;</code></td></tr>
+            <tr><td><strong>Herencia QWeb</strong></td><td>Templates con <code>t-name</code> y estructura limpia</td><td>Templates con XPath heredado de <code>website.layout</code></td></tr>
+            <tr><td><strong>Header/Footer</strong></td><td>Embebido en <code>t-call="website.layout"</code></td><td>Separados en archivos independientes con XPath replace</td></tr>
+            <tr><td><strong>Sidebar PQR´s</strong></td><td>Embebido dentro de <code>page_home.xml</code></td><td>Componente independiente <code>somos_rightBar.xml</code></td></tr>
+            <tr><td><strong>Wolkvox Chat</strong></td><td>No existe en código fuente</td><td>Script añadido globalmente en <code>wolkvox_script_addition.xml</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RECOMENDACIONES ════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">9. Recomendaciones Técnicas</div>
+    <div class="alert alert-success">
+      <strong>✅ Plan de acción recomendado para sincronización (Si se Desea Realizar Migración a Código Fuente)</strong>
+      Basado en el análisis, se propone el siguiente orden de trabajo para alinear el código fuente con la base de datos de producción.
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Prioridad</th><th>Acción</th><th>Archivos Involucrados</th><th>Impacto</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>🔴 1 — Alta</td>
+            <td>Incorporar al código fuente los <strong>14 archivos nuevos de BD</strong> que no tienen respaldo en código</td>
+            <td><code>header.xml</code>, <code>footer.xml</code>, <code>page_canal_transparencia.xml</code>, <code>page_gestion_cobranza.xml</code>, <code>wolkvox_script_addition.xml</code>, <code>page_campain_update_user.xml</code>, <code>page_requirement-pqrs_wolkvox.xml</code> y 7 más</td>
+            <td>🚨 Crítico: sin esto, el código no refleja producción</td>
+          </tr>
+          <tr>
+            <td>🔴 2 — Alta</td>
+            <td>Actualizar los <strong>23 archivos renombrados</strong> para alinear naming convention (<code>page_</code> prefix)</td>
+            <td>Todos los archivos de la sección 4 de este documento</td>
+            <td>Alto: inconsistencia de nombres entre BD y código</td>
+          </tr>
+          <tr>
+            <td>🔴 3 — Alta</td>
+            <td>Incorporar aproximadamente <strong>20 módulos adicionales</strong> necesarios para completar la funcionalidad del sistema</td>
+            <td>Módulos personalizados y dependencias detectadas durante el análisis</td>
+            <td>🚨 Crítico: el sistema no funcionará completamente sin estos módulos</td>
+          </tr>
+          <tr>
+            <td>🟡 4 — Media</td>
+            <td>Revisar archivos <strong>solo en código</strong> y decidir cuáles se eliminan, cuáles se mantienen como backend, y cuáles se actualizan</td>
+            <td><code>collection_management.xml</code>, <code>complaints_channel.xml</code>, <code>otp_register.xml</code>, <code>allies.xml</code></td>
+            <td>Medio: limpieza de código y deuda técnica</td>
+          </tr>
+          <tr>
+            <td>🟡 5 — Media</td>
+            <td>Sincronizar el contenido de las páginas: comparar línea a línea las versiones de código y BD para identificar cambios de contenido</td>
+            <td>Las 23 páginas con equivalente en ambos lados</td>
+            <td>Medio: asegurar que código = producción</td>
+          </tr>
+          <tr>
+            <td>🟢 6 — Baja</td>
+            <td>Establecer un flujo de trabajo GitOps: <em>código → review → deploy a producción</em>. Nunca editar directamente desde la plataforma Odoo</td>
+            <td>Todo el proyecto</td>
+            <td>Preventivo: evitar esta situación en el futuro</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ RESUMEN FINAL ══════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title">10. Conclusiones</div>
+    <div class="two-col">
+      <div class="highlight-box">
+        <div class="mini-title">📌 Hallazgos Principales</div>
+        <ul class="list-plain" style="margin-top:10px">
+          <li>El código fuente tiene <strong>64 XML</strong> vs <strong>40 en BD</strong> — pero menos páginas únicas reales por diferencia de naming</li>
+          <li><strong>23 páginas</strong> existen en ambos lados con diferente nombre y contenido modificado</li>
+          <li><strong>14 páginas/componentes nuevos</strong> en BD que no tienen respaldo en código (riesgo de pérdida)</li>
+          <li><strong>30 archivos</strong> en código sin equivalente en BD, mayormente vistas de backend/admin</li>
+          <li>La BD de producción tiene <strong>787 archivos XML</strong> en total (20 módulos) vs 81 en código personalizado</li>
+          <li>Se incorporaron integraciones nuevas en BD: <strong>Wolkvox chat</strong> y <strong>PQRS Wolkvox</strong></li>
+          <li>El header y footer fueron <strong>refactorizados</strong> como componentes independientes en BD</li>
+          <li>Nuevas páginas legales: <strong>Canal de Transparencia</strong>, <strong>Política de Tratamiento de Datos</strong></li>
+          <li>Nueva funcionalidad: <strong>Vacantes / Trabaja con Nosotros</strong>, <strong>Gestión de Cobranza</strong></li>
+        </ul>
+      </div>
+      <div class="highlight-box">
+        <div class="mini-title">🎯 Riesgo Técnico</div>
+        <ul class="list-plain" style="margin-top:10px">
+          <li>🔴 El código fuente está <strong>desactualizado</strong> respecto a producción</li>
+          <li>🔴 Hacer un deploy desde código sobreescribiría <strong>cambios de producción</strong></li>
+          <li>🔴 Los 14 archivos nuevos de BD no tienen backup en código — riesgo si la BD se daña</li>
+          <li>🟡 Existe inconsistencia de naming entre BD y código que complica la sincronización</li>
+          <li>🟡 La integración Wolkvox (chat + PQRS) solo está en BD</li>
+          <li>🟢 Los modelos Python, controladores y assets estáticos del código fuente aún son relevantes y necesarios</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════ -->
+<div class="doc-footer">
+  Documento técnico generado para <strong>OnCredit - GrupoSomos EPM</strong> · Análisis realizado por Jeferson Hernandez · Marzo 2026
+</div>
+
+<!-- ══ CHARTS JS ═════════════════════════════════════════════ -->
+<script>
+// Gráfico 1: Barras comparativas
+new Chart(document.getElementById('chartComparacion'), {
+  type: 'bar',
+  data: {
+    labels: ['Total XML', 'Páginas con\nequivalente', 'Solo en Código', 'Solo en BD (nuevas)'],
+    datasets: [
+      {
+        label: 'Código Fuente (theme_somos)',
+        data: [64, 23, 30, 0],
+        backgroundColor: '#4678C8',
+        borderRadius: 6
+      },
+      {
+        label: 'Base de Datos Producción',
+        data: [40, 23, 0, 14],
+        backgroundColor: '#f39c12',
+        borderRadius: 6
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#eee' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Gráfico 2: Donut distribución
+new Chart(document.getElementById('chartDistribucion'), {
+  type: 'doughnut',
+  data: {
+    labels: [
+      'Renombradas/Modificadas (en ambos)',
+      'Solo en Código (backend/admin)',
+      'Nuevas en BD (sin backup código)',
+      'Iguales / Sin cambios'
+    ],
+    datasets: [{
+      data: [23, 30, 14, 1],
+      backgroundColor: ['#8e44ad', '#4678C8', '#e74c3c', '#95a5a6'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '62%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 14 } }
+    }
+  }
+});
+
+// Gráfico 3: Líneas de código - barras horizontales
+const paginasLabels = [
+  'transacciones', 'update_user', 'signup/somos_signup', 'home/page_home',
+  'credi_somos', 'remember_password', 'vive_somos', 'register_final',
+  'ofertas_credi_somos', 'home-transacciones', 'aliados', 'mis_datos',
+  'aliados_agil', 'aliados_eco', 'signin'
+];
+const lineasCodigo = [1963, 1238, 1124, 1084, 942, 430, 401, 232, 225, 212, 166, 160, 159, 159, 151];
+const lineasBD = [1661, 980, 911, 983, 893, 332, 329, 194, 194, 188, 130, 144, 124, 124, 123];
+
+new Chart(document.getElementById('chartLineas'), {
+  type: 'bar',
+  data: {
+    labels: paginasLabels,
+    datasets: [
+      { label: 'Código Fuente (líneas)', data: lineasCodigo, backgroundColor: '#4678C8', borderRadius: 4 },
+      { label: 'Base de Datos (líneas)',  data: lineasBD,     backgroundColor: '#f39c12', borderRadius: 4 }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      x: { beginAtZero: true, grid: { color: '#eee' } },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// Gráfico 4: Módulos en export_views
+new Chart(document.getElementById('chartModulos'), {
+  type: 'bar',
+  data: {
+    labels: ['sin_modulo', 'website', 'theme_somos', 'web', 'portal', 'mail', 'web_editor',
+             'base', 'http_routing', 'auth_signup', 'digest', 'otros'],
+    datasets: [{
+      label: 'Archivos XML',
+      data: [440, 188, 40, 33, 26, 13, 10, 7, 7, 5, 5, 13],
+      backgroundColor: [
+        '#95a5a6','#3498db','#4678C8','#2ecc71','#9b59b6','#e67e22',
+        '#1abc9c','#e74c3c','#f39c12','#16a085','#8e44ad','#bdc3c7'
+      ],
+      borderRadius: 5
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#eee' } },
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+/* ══════════════════════════════════════════════════════
+   VANTA
+══════════════════════════════════════════════════════ */
+VANTA.WAVES({
+  el: "#vanta-bg",
+  mouseControls: true,
+  touchControls: true,
+  gyroControls: false,
+  minHeight: 200.00,
+  minWidth: 20.00,
+  scale: 1.00,
+  scaleMobile: 1.00
+})
+
+</script>
+</body>
+</html>

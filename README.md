@@ -1,0 +1,1 @@
+# oncredit-odoo-code-analysis
